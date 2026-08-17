@@ -1,0 +1,27 @@
+name: Weekly Automated Translation
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Runs every Sunday at midnight automatically
+  workflow_dispatch: # Allows you to also run it manually with one click
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Install Tools
+      run: pip install deep-translator
+    - name: Run Script
+      run: python translator.py
+    - name: Commit Changes
+      run: |
+        git config --global user.name 'Automated Bot'
+        git config --global user.email 'bot@://github.com'
+        git add .
+        git commit -m "Automated weekly translation update" || exit 0
+        git push
