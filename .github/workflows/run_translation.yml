@@ -3,7 +3,7 @@ name: Weekly Automated Translation
 on:
   schedule:
     - cron: '0 0 * * 0' # Runs every Sunday at midnight automatically
-  workflow_dispatch: # Allows you to also run it manually with one click
+  workflow_dispatch: # Allows manual runs
 
 jobs:
   build:
@@ -18,8 +18,7 @@ jobs:
       run: pip install deep-translator
     - name: Run Script
       env:
-        BLOGGER_ID: ${{ secrets.BLOGGER_ID }}
-        BLOGGER_API_KEY: ${{ secrets.BLOGGER_API_KEY }}
+        BLOGGER_EMAIL: ${{ secrets.BLOGGER_EMAIL }}
       run: python translator.py
     - name: Commit Changes
       run: |
