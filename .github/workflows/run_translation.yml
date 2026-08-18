@@ -17,6 +17,9 @@ jobs:
     - name: Install Tools
       run: pip install deep-translator
     - name: Run Script
+      env:
+        BLOGGER_ID: ${{ secrets.BLOGGER_ID }}
+        BLOGGER_API_KEY: ${{ secrets.BLOGGER_API_KEY }}
       run: python translator.py
     - name: Commit Changes
       run: |
