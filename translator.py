@@ -1,18 +1,13 @@
-import os
+mport os
 import xml.etree.ElementTree as ET
 import urllib.request
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from deep_translator import GoogleTranslator
 
 # 1. Target Configurations
 SOURCE_LANG = 'en'
-TARGET_LANG = 'es' 
+TARGET_LANG = 'es' # Spanish
 RSS_URL = 'http://bbci.co.uk' 
-
-# 2. Extract Destination Email from Vault
-BLOGGER_EMAIL = os.environ.get("BLOGGER_EMAIL")
+OUTPUT_FILE = 'NOTICIAS_TECH.md' # This creates a clean Markdown article file
 
 def translate_text(text):
     if not text or not text.strip():
@@ -23,39 +18,20 @@ def translate_text(text):
         print(f"Translation slip: {e}")
         return text
 
-def send_via_relay(html_content):
-    if not BLOGGER_EMAIL:
-        print("Missing destination address. Skipping dispatch.")
-        return
-
-    # Construct the message packet explicitly
-    msg = MIMEMultipart()
-    msg['From'] = "automation-engine@github.cloud"
-    msg['To'] = BLOGGER_EMAIL
-    # The Subject line instantly dictates your main blog headline!
-    msg['Subject'] = "Noticias de Tecnología - Actualización Semanal Automática"
-    msg.attach(MIMEText(html_content, 'html'))
-
-    try:
-        # Utilize the cloud machine's local loop to transmit straight to Google's receiving server
-        with smtplib.SMTP('localhost') as server:
-            server.sendmail("automation-engine@github.cloud", [BLOGGER_EMAIL], msg.as_string())
-        print("Dispatched to receiving pipeline successfully!")
-    except Exception:
-        # Fallback local container route
-        print("Saved payload securely to archive.")
-
 def main():
-    print("Scraping real-time global feeds...")
+    print("Scraping real-time global tech feeds...")
     try:
         req = urllib.request.Request(RSS_URL, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
             rss_data = response.read()
             
         root = ET.fromstring(rss_data)
-        articles = root.findall('.//item')[:3]
+        articles = root.findall('.//item')[:5] # Grabs the top 5 articles
         
-        post_body = "<h2>Las últimas novedades tecnológicas globales:</h2><br>"
+        # Build a beautiful, readable article page
+        markdown_body = f"# 🚀 Actualización Semanal de Tecnología\n"
+        markdown_body += f"*Generado automáticamente por tu motor de traducción artificial*\n\n"
+        markdown_body += "---\n\n"
         
         for index, item in enumerate(articles, 1):
             title = item.find('title').text
@@ -65,11 +41,15 @@ def main():
             trans_title = translate_text(title)
             trans_desc = translate_text(desc)
             
-            post_body += f"<h3>🔥 {trans_title}</h3>"
-            post_body += f"<p>{trans_desc}</p><br><hr><br>"
+            markdown_body += f"## 🔥 {trans_title}\n"
+            markdown_body += f"{trans_desc}\n\n"
+            markdown_body += "---\n\n"
             
-        send_via_relay(post_body)
-        print("Complete routine finished successfully.")
+        # Save straight to the cloud repository file
+        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+            f.write(markdown_body)
+            
+        print(f"Complete routine finished. Saved to {OUTPUT_FILE}")
         
     except Exception as e:
         print(f"Process checkpoint anomaly: {e}")
