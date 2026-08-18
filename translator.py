@@ -7,7 +7,10 @@ from deep_translator import GoogleTranslator
 SOURCE_LANG = 'en'
 TARGET_LANG = 'es' # Spanish
 RSS_URL = 'http://bbci.co.uk' 
-OUTPUT_FILE = 'NOTICIAS_TECH.md' # This creates a clean Markdown article file
+
+# This forces the file to save in your main folder instead of a hidden system folder
+repo_dir = os.getenv('GITHUB_WORKSPACE', '.')
+OUTPUT_FILE = os.path.join(repo_dir, 'NOTICIAS_TECH.md')
 
 def translate_text(text):
     if not text or not text.strip():
