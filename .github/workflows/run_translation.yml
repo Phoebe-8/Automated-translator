@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
@@ -22,3 +24,6 @@ jobs:
       run: |
         git config --global user.name 'Automated Bot'
         git config --global user.email 'bot@noreply.github.com'
+        git add .
+        git commit -m "Automated weekly translation update" || exit 0
+        git push
