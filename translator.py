@@ -1,4 +1,4 @@
-mport os
+import os
 import xml.etree.ElementTree as ET
 import urllib.request
 from deep_translator import GoogleTranslator
