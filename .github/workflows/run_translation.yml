@@ -17,13 +17,8 @@ jobs:
     - name: Install Tools
       run: pip install deep-translator
     - name: Run Script
-      env:
-        BLOGGER_EMAIL: ${{ secrets.BLOGGER_EMAIL }}
       run: python translator.py
     - name: Commit Changes
       run: |
         git config --global user.name 'Automated Bot'
-        git config --global user.email 'bot@://github.com'
-        git add .
-        git commit -m "Automated weekly translation update" || exit 0
-        git push
+        git config --global user.email 'bot@noreply.github.com'
