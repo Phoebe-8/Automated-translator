@@ -1,14 +1,12 @@
 import os
-import xml.etree.ElementTree as ET
 import urllib.request
+import re
 from deep_translator import GoogleTranslator
 
-# 1. Target Configurations
 SOURCE_LANG = 'en'
-TARGET_LANG = 'es' # Spanish
+TARGET_LANG = 'es' 
 RSS_URL = 'http://bbci.co.uk' 
 
-# This forces the file to save in your main folder instead of a hidden system folder
 repo_dir = os.getenv('GITHUB_WORKSPACE', '.')
 OUTPUT_FILE = os.path.join(repo_dir, 'NOTICIAS_TECH.md')
 
@@ -21,24 +19,32 @@ def translate_text(text):
         print(f"Translation slip: {e}")
         return text
 
+def clean_html(text):
+    # Quick regex helper to strip out XML/HTML tags safely
+    return re.sub(r'<[^>]*>', '', text).strip()
+
 def main():
     print("Scraping real-time global tech feeds...")
     try:
         req = urllib.request.Request(RSS_URL, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
-            rss_data = response.read()
+            # Decode using errors='ignore' to strip out any broken characters automatically
+            rss_text = response.read().decode('utf-8', errors='ignore')
             
-        root = ET.fromstring(rss_data)
-        articles = root.findall('.//item')[:5] # Grabs the top 5 articles
+        # Split the text by <item> tags manually to completely bypass strict XML parsing errors
+        items = rss_text.split('<item>')[1:6] # Grab up to 5 articles
         
-        # Build a beautiful, readable article page
         markdown_body = f"# 🚀 Actualización Semanal de Tecnología\n"
         markdown_body += f"*Generado automáticamente por tu motor de traducción artificial*\n\n"
         markdown_body += "---\n\n"
         
-        for index, item in enumerate(articles, 1):
-            title = item.find('title').text
-            desc = item.find('description').text
+        for index, item in enumerate(items, 1):
+            # Extract title and description using simple text boundary searches
+            title_match = re.search(r'<title><!\[CDATA\[(.*?)\]\]></title>', item) or re.search(r'<title>(.*?)</title>', item)
+            desc_match = re.search(r'<description><!\[CDATA\[(.*?)\]\]></description>', item) or re.search(r'<description>(.*?)</description>', item)
+            
+            title = clean_html(title_match.group(1)) if title_match else "Noticia"
+            desc = clean_html(desc_match.group(1)) if desc_match else ""
             
             print(f"Translating story segment {index}...")
             trans_title = translate_text(title)
@@ -48,7 +54,6 @@ def main():
             markdown_body += f"{trans_desc}\n\n"
             markdown_body += "---\n\n"
             
-        # Save straight to the cloud repository file
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             f.write(markdown_body)
             
