@@ -8,7 +8,7 @@ TARGET_LANG = 'es'
 RSS_URL = 'http://bbci.co.uk' 
 
 repo_dir = os.getenv('GITHUB_WORKSPACE', '.')
-OUTPUT_FILE = os.path.join(repo_dir, 'NOTICIAS_TECH.md')
+OUTPUT_FILE = os.path.join(repo_dir, 'index.html')
 
 def translate_text(text):
     if not text or not text.strip():
@@ -20,7 +20,6 @@ def translate_text(text):
         return text
 
 def clean_html(text):
-    # Quick regex helper to strip out XML/HTML tags safely
     return re.sub(r'<[^>]*>', '', text).strip()
 
 def main():
@@ -28,18 +27,32 @@ def main():
     try:
         req = urllib.request.Request(RSS_URL, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
-            # Decode using errors='ignore' to strip out any broken characters automatically
             rss_text = response.read().decode('utf-8', errors='ignore')
             
-        # Split the text by <item> tags manually to completely bypass strict XML parsing errors
-        items = rss_text.split('<item>')[1:6] # Grab up to 5 articles
+        items = rss_text.split('<item>')[1:6] 
         
-        markdown_body = f"# 🚀 Actualización Semanal de Tecnología\n"
-        markdown_body += f"*Generado automáticamente por tu motor de traducción artificial*\n\n"
-        markdown_body += "---\n\n"
+        # Build a standard HTML webpage format that browsers can actually read
+        html_body = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización Semanal de Tecnología</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+        .article { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        h2 { color: #ff6600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Actualización Semanal de Tecnología</h1>
+        <p><em>Generado automáticamente por tu motor de traducción artificial</em></p>
+        <hr>
+"""
         
         for index, item in enumerate(items, 1):
-            # Extract title and description using simple text boundary searches
             title_match = re.search(r'<title><!\[CDATA\[(.*?)\]\]></title>', item) or re.search(r'<title>(.*?)</title>', item)
             desc_match = re.search(r'<description><!\[CDATA\[(.*?)\]\]></description>', item) or re.search(r'<description>(.*?)</description>', item)
             
@@ -50,12 +63,18 @@ def main():
             trans_title = translate_text(title)
             trans_desc = translate_text(desc)
             
-            markdown_body += f"## 🔥 {trans_title}\n"
-            markdown_body += f"{trans_desc}\n\n"
-            markdown_body += "---\n\n"
+            # Format the text directly into visual containers
+            html_body += f' <div class="article">\n'
+            html_body += f' <h2>🔥 {trans_title}</h2>\n'
+            html_body += f' <p>{trans_desc}</p>\n'
+            html_body += f' </div>\n'
+            
+        html_body += """ </div>
+</body>
+</html>"""
             
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            f.write(markdown_body)
+            f.write(html_body)
             
         print(f"Complete routine finished. Saved to {OUTPUT_FILE}")
         
