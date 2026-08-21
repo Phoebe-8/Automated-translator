@@ -15,15 +15,13 @@ def translate_text(text):
         return ""
     try:
         return GoogleTranslator(source=SOURCE_LANG, target=TARGET_LANG).translate(text)
-    except Exception as e:
-        print(f"Translation error: {e}")
+    except Exception:
         return text
 
 def clean_html(text):
     return re.sub(r'<[^>]*>', '', text).strip()
 
 def main():
-    print("Scraping real-time global tech feeds...")
     try:
         req = urllib.request.Request(RSS_URL, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
@@ -31,7 +29,7 @@ def main():
             
         items = rss_text.split('<item>')[1:6] 
         
-        # This builds the exact layout you see on your screen right now
+        # Build the exact white layout container shown on your screen
         html_body = """<!DOCTYPE html>
 <html>
 <head>
@@ -40,9 +38,10 @@ def main():
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; color: #333; }
         .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
-        .article { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        h2 { color: #ff6600; font-size: 20px; }
+        h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 10px; font-size: 28px; }
+        .article { margin-top: 30px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        h2 { color: #ff6600; font-size: 20px; margin-bottom: 10px; }
+        p { line-height: 1.6; font-size: 15px; color: #555; }
     </style>
 </head>
 <body>
@@ -52,15 +51,14 @@ def main():
         <hr>
 """
         
-        # This loops through each news story, translates it, and puts it inside your layout box
-        for index, item in enumerate(items, 1):
+        # This actively injects the news blocks directly inside the HTML container
+        for item in items:
             title_match = re.search(r'<title><!\[CDATA\[(.*?)\]\]></title>', item) or re.search(r'<title>(.*?)</title>', item)
             desc_match = re.search(r'<description><!\[CDATA\[(.*?)\]\]></description>', item) or re.search(r'<description>(.*?)</description>', item)
             
             title = clean_html(title_match.group(1)) if title_match else "Noticia"
             desc = clean_html(desc_match.group(1)) if desc_match else ""
             
-            print(f"Translating news item {index}...")
             trans_title = translate_text(title)
             trans_desc = translate_text(desc)
             
@@ -76,10 +74,8 @@ def main():
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             f.write(html_body)
             
-        print("Successfully built the live index.html website with fresh articles!")
-        
     except Exception as e:
-        print(f"Process crashed: {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
