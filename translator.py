@@ -49,6 +49,7 @@ def main():
         <h1>🚀 Actualización Semanal de Tecnología</h1>
         <p><em>Generado automáticamente por tu motor de traducción artificial</em></p>
         <hr>
+        html_body += ' <script type="text/javascript" src="https://yieldadx.com"></script>\n'
 """
         
         # This actively injects the news blocks directly inside the HTML container
